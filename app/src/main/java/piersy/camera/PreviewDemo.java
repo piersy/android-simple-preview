@@ -15,9 +15,15 @@ public class PreviewDemo extends Activity {
     private SurfaceHolder previewHolder = null;
     private Camera camera = null;
     private final String TAG = "PreviewDemo";
+    private SimplePreview simplePreview;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+//                super.onCreate(savedInstanceState);
+//        setContentView(R.layout.main);
+
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         SurfaceView preview = (SurfaceView) findViewById(R.id.preview);
@@ -28,10 +34,13 @@ public class PreviewDemo extends Activity {
     @Override
     public void onResume() {
         super.onResume();
+       // SurfaceView preview = (SurfaceView) findViewById(R.id.preview);
+    //    simplePreview = new SimplePreview(preview, 1280, 720, previewCallback);
     }
 
     @Override
     public void onPause() {
+        //simplePreview.stopPreview();
         camera.stopPreview();
         camera.release();
         super.onPause();
