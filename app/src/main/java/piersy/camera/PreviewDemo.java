@@ -19,30 +19,30 @@ public class PreviewDemo extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-//                super.onCreate(savedInstanceState);
-//        setContentView(R.layout.main);
-
-
-
-        super.onCreate(savedInstanceState);
+                super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        SurfaceView preview = (SurfaceView) findViewById(R.id.preview);
-        previewHolder = preview.getHolder();
-        previewHolder.addCallback(surfaceCallback);
+
+
+//
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.main);
+//        SurfaceView preview = (SurfaceView) findViewById(R.id.preview);
+//        previewHolder = preview.getHolder();
+//        previewHolder.addCallback(surfaceCallback);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-       // SurfaceView preview = (SurfaceView) findViewById(R.id.preview);
-    //    simplePreview = new SimplePreview(preview, 1280, 720, previewCallback);
+        SurfaceView preview = (SurfaceView) findViewById(R.id.preview);
+       simplePreview = new SimplePreview(preview, 1280, 720, previewCallback);
     }
 
     @Override
     public void onPause() {
-        //simplePreview.stopPreview();
-        camera.stopPreview();
-        camera.release();
+        simplePreview.stopPreview();
+        //camera.stopPreview();
+        //camera.release();
         super.onPause();
     }
 

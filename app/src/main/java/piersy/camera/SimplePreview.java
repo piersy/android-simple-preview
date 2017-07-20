@@ -19,18 +19,23 @@ import static android.R.attr.width;
 public class SimplePreview {
     private static final String TAG = SimplePreview.class.getName();
     private final Camera camera;
+    private final SurfaceView previewSurface;
+    private StartPreviewCallback startPreviewCallback;
 
     public SimplePreview(SurfaceView previewSurface, int targetWidth, int targetHeight, Camera.PreviewCallback previewCallback) {
+        this.previewSurface = previewSurface;
         camera = findCamera(CameraFacing.FRONT, ImageFormat.NV21);
         Camera.Size size = getOptimalPreviewSize(camera, targetWidth, targetHeight, 0);
 
         int bufferSize = ImageFormat.getBitsPerPixel(ImageFormat.NV21) * size.width * size.height / 8;
         camera.setPreviewCallbackWithBuffer(previewCallback);
         camera.addCallbackBuffer(new byte[bufferSize]);
-        previewSurface.getHolder().addCallback(new StartPreviewCallback(camera, size));
+        startPreviewCallback = new StartPreviewCallback(camera, size);
+        previewSurface.getHolder().addCallback(startPreviewCallback);
     }
 
     public void stopPreview(){
+        previewSurface.getHolder().removeCallback(startPreviewCallback);
         camera.stopPreview();
         camera.release();
     }
