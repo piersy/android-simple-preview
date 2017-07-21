@@ -5,16 +5,9 @@ import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.List;
-
-import static android.R.attr.width;
-
-/**
- * Created by piers on 20/07/17.
- */
 
 public class SimplePreview {
     private static final String TAG = SimplePreview.class.getName();
@@ -26,9 +19,13 @@ public class SimplePreview {
         this.previewSurface = previewSurface;
         camera = findCamera(CameraFacing.FRONT, ImageFormat.NV21);
         Camera.Size size = getOptimalPreviewSize(camera, targetWidth, targetHeight, 0);
+        setPreviewSize(camera, size);
 
+        int bufferSize = (ImageFormat.getBitsPerPixel(ImageFormat.NV21) * size.width * size.height) / 8;
+        camera.setPreviewCallbackWithBuffer(previewCallback);
+        camera.addCallbackBuffer(new byte[bufferSize]);
 
-        startPreviewCallback = new StartPreviewCallback(camera, size, previewCallback);
+        startPreviewCallback = new StartPreviewCallback(camera);
         previewSurface.getHolder().addCallback(startPreviewCallback);
     }
 
@@ -82,22 +79,44 @@ public class SimplePreview {
         return optimalSize;
     }
 
+    private void setPreviewSize(Camera camera, Camera.Size size){
+        /**
+         * This may look retarded and it is but you really have to create a new instance of Parameters
+         * and set properties in there and then set those on the camera.
+         *
+         * The following does not work
+         *
+         *  camera.getParameters().setPreviewSize(size.width, size.height);
+         *
+         * or
+         *
+         *  camera.getParameters().setPreviewSize(size.width, size.height);
+         *  camera.setParameters(camera.getParameters());
+         *
+         *  It has to be done as below.
+         */
+        Camera.Parameters params = camera.getParameters();
+        params.setPreviewSize(size.width, size.height);
+        camera.setParameters(params);
+    }
+
     private static class StartPreviewCallback implements SurfaceHolder.Callback {
 
         private Camera camera;
-        private Camera.Size size;
-        private final Camera.PreviewCallback previewCallback;
 
-        private StartPreviewCallback(Camera camera, Camera.Size size, Camera.PreviewCallback previewCallback) {
+        private StartPreviewCallback(Camera camera) {
             this.camera = camera;
-            this.size = size;
-            this.previewCallback = previewCallback;
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
             // no-op -- wait until surfaceChanged()
         }
 
+        /**
+         * We need to wait for surface changed here as it is the only safe place to assume that the
+         * surface holder is in a valid sate to be able to be set as the preview display and start the
+         * preview.
+         */
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             try {
@@ -105,24 +124,11 @@ public class SimplePreview {
             } catch (IOException e) {
                 throw new RuntimeException("Failed to set preview display: " + e.getMessage());
             }
-            Log.d(TAG, "Camera focus mode: " + size.width+" "+size.height);
-
-            Camera.Parameters params = camera.getParameters();
-            params.setPreviewSize(size.width, size.height);
-            camera.setParameters(params);
-            Log.d(TAG, "Camera prev size: " + camera.getParameters().getPreviewSize().height);
-            Log.d(TAG, "Camera prev size: " + camera.getParameters().getPreviewSize().width);
-            int bufferSize = (ImageFormat.getBitsPerPixel(ImageFormat.NV21) * size.width * size.height) / 8;
-            camera.setPreviewCallbackWithBuffer(previewCallback);
-            camera.addCallbackBuffer(new byte[bufferSize]);
-
-
             camera.startPreview();
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
             // no-op
-
         }
     }
 
