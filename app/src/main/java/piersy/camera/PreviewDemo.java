@@ -23,7 +23,7 @@ public class PreviewDemo extends Activity {
         setContentView(R.layout.main);
 
 
-//
+
 //        super.onCreate(savedInstanceState);
 //        setContentView(R.layout.main);
 //        SurfaceView preview = (SurfaceView) findViewById(R.id.preview);
@@ -134,6 +134,10 @@ public class PreviewDemo extends Activity {
             Camera.Size size = getOptimalPreviewSize(params.getSupportedPreviewSizes(), width, height);
             params.setPreviewSize(size.width, size.height);
             camera.setParameters(params);
+
+            Log.d(TAG, "Camera prev size: " + camera.getParameters().getPreviewSize().height);
+            Log.d(TAG, "Camera prev size: " + camera.getParameters().getPreviewSize().width);
+
 
             int bufferSize = ImageFormat.getBitsPerPixel(ImageFormat.NV21) * size.width * size.height / 8;
             camera.setPreviewCallbackWithBuffer(previewCallback);

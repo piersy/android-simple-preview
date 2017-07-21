@@ -27,10 +27,8 @@ public class SimplePreview {
         camera = findCamera(CameraFacing.FRONT, ImageFormat.NV21);
         Camera.Size size = getOptimalPreviewSize(camera, targetWidth, targetHeight, 0);
 
-        int bufferSize = ImageFormat.getBitsPerPixel(ImageFormat.NV21) * size.width * size.height / 8;
-        camera.setPreviewCallbackWithBuffer(previewCallback);
-        camera.addCallbackBuffer(new byte[bufferSize]);
-        startPreviewCallback = new StartPreviewCallback(camera, size);
+
+        startPreviewCallback = new StartPreviewCallback(camera, size, previewCallback);
         previewSurface.getHolder().addCallback(startPreviewCallback);
     }
 
@@ -88,10 +86,12 @@ public class SimplePreview {
 
         private Camera camera;
         private Camera.Size size;
+        private final Camera.PreviewCallback previewCallback;
 
-        private StartPreviewCallback(Camera camera, Camera.Size size) {
+        private StartPreviewCallback(Camera camera, Camera.Size size, Camera.PreviewCallback previewCallback) {
             this.camera = camera;
             this.size = size;
+            this.previewCallback = previewCallback;
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
@@ -105,7 +105,18 @@ public class SimplePreview {
             } catch (IOException e) {
                 throw new RuntimeException("Failed to set preview display: " + e.getMessage());
             }
-            camera.getParameters().setPreviewSize(size.width, size.height);
+            Log.d(TAG, "Camera focus mode: " + size.width+" "+size.height);
+
+            Camera.Parameters params = camera.getParameters();
+            params.setPreviewSize(size.width, size.height);
+            camera.setParameters(params);
+            Log.d(TAG, "Camera prev size: " + camera.getParameters().getPreviewSize().height);
+            Log.d(TAG, "Camera prev size: " + camera.getParameters().getPreviewSize().width);
+            int bufferSize = (ImageFormat.getBitsPerPixel(ImageFormat.NV21) * size.width * size.height) / 8;
+            camera.setPreviewCallbackWithBuffer(previewCallback);
+            camera.addCallbackBuffer(new byte[bufferSize]);
+
+
             camera.startPreview();
         }
 
