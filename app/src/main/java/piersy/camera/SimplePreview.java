@@ -15,17 +15,18 @@ public class SimplePreview {
     private final SurfaceView previewSurface;
     private StartPreviewCallback startPreviewCallback;
 
-    public SimplePreview(SurfaceView previewSurface, int targetWidth, int targetHeight, Camera.PreviewCallback previewCallback) {
+    public SimplePreview(Camera camera, SurfaceView previewSurface, int targetWidth, int targetHeight, Camera.PreviewCallback previewCallback) {
+        this.camera = camera;
         this.previewSurface = previewSurface;
-        camera = findCamera(CameraFacing.FRONT, ImageFormat.NV21);
-        Camera.Size size = getOptimalPreviewSize(camera, targetWidth, targetHeight, 0);
-        setPreviewSize(camera, size);
+
+        Camera.Size size = getOptimalPreviewSize(this.camera, targetWidth, targetHeight, 0);
+        setPreviewSize(this.camera, size);
 
         int bufferSize = (ImageFormat.getBitsPerPixel(ImageFormat.NV21) * size.width * size.height) / 8;
-        camera.setPreviewCallbackWithBuffer(previewCallback);
-        camera.addCallbackBuffer(new byte[bufferSize]);
+        this.camera.setPreviewCallbackWithBuffer(previewCallback);
+        this.camera.addCallbackBuffer(new byte[bufferSize]);
 
-        startPreviewCallback = new StartPreviewCallback(camera);
+        startPreviewCallback = new StartPreviewCallback(this.camera);
         previewSurface.getHolder().addCallback(startPreviewCallback);
     }
 
@@ -35,7 +36,7 @@ public class SimplePreview {
         camera.release();
     }
 
-    private Camera findCamera(CameraFacing facing, int previewImageFormat) {
+    public static Camera findCamera(CameraFacing facing, int previewImageFormat) {
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         int cameraCount = Camera.getNumberOfCameras();
         for (int camIdx = 0; camIdx < cameraCount; camIdx++) {
